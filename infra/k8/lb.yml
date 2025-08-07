@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app-loadbalancer
+  labels:
+    app: my-app
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8080 # pod port where nginx listens
+    protocol: TCP
+  selector:
+    app: my-app
+    
