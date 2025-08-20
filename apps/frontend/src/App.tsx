@@ -14,8 +14,8 @@ const App = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Backend URL - in production this would be your Kubernetes service
-  const BACKEND_URL: string = 'http://localhost:3001';
+  // Backend URL - configurable via environment variables
+  const BACKEND_URL: string = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 
   useEffect(() => {
     // Fetch data from backend
