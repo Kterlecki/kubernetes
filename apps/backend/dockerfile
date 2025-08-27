@@ -1,27 +1,13 @@
-# Multi-stage build for React TypeScript app
-
-# Stage 1: Build the React app
 FROM node:18-alpine AS build
 
 WORKDIR /backend
 
-# Copy package files first for better caching
-COPY package*.json ./
-
-# Install dependencies (including devDependencies needed for build)
-RUN npm ci
-
-# Copy source code
 COPY . .
 
-# Build the React app
+RUN npm ci
+
 RUN npm run build
 
-FROM nginxinc/nginx-unprivileged:alpine
+EXPOSE 3001
 
-COPY --from=build /backend /usr/share/nginx/html
-
-# Expose port 8080 to match Kubernetes deployment
-EXPOSE 8080
-
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["npm", "run", "start"]

@@ -3,7 +3,7 @@
 # Stage 1: Build the React app
 FROM node:18-alpine AS build
 
-WORKDIR /app
+WORKDIR /frontend
 
 # Copy package files first for better caching
 COPY package*.json ./
@@ -19,9 +19,9 @@ RUN npm run build
 
 FROM nginxinc/nginx-unprivileged:alpine
 
-COPY --from=build /app/build /usr/share/nginx/html
+COPY --from=build /frontend /usr/share/nginx/html
 
 # Expose port 8080 to match Kubernetes deployment
 EXPOSE 8080
 
-CMD ["nginx", "-g", "daemon off;"]
+# CMD ["nginx", "-g", "daemon off;"]
