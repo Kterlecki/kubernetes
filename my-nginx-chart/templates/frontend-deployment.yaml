@@ -6,7 +6,27 @@ metadata:
     {{- include "my-nginx-chart.labels" . | nindent 4 }}
     app.kubernetes.io/component: frontend
 spec:
+  {{- if not .Values.frontend.autoscaling.enabled }}
   replicas: {{ .Values.frontend.replicaCount }}
+  {{- end }}
+  {{- if .Values.deployment.progressDeadlineSeconds }}
+  progressDeadlineSeconds: {{ .Values.deployment.progressDeadlineSeconds }}
+  {{- end }}
+  {{- if .Values.deployment.minReadySeconds }}
+  minReadySeconds: {{ .Values.deployment.minReadySeconds }}
+  {{- end }}
+  {{- if .Values.deployment.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.deployment.revisionHistoryLimit }}
+  {{- end }}
+  {{- with .Values.frontend.deploymentStrategy }}
+  strategy:
+    type: {{ .type | default "RollingUpdate" }}
+    {{- if eq (.type | default "RollingUpdate") "RollingUpdate" }}
+    rollingUpdate:
+      maxSurge: {{ .rollingUpdate.maxSurge | default "25%" }}
+      maxUnavailable: {{ .rollingUpdate.maxUnavailable | default "25%" }}
+    {{- end }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "my-nginx-chart.selectorLabels" . | nindent 6 }}
@@ -35,6 +55,7 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      automountServiceAccountToken: {{ not .Values.serviceAccount.automount }}
       containers:
         - name: frontend
           {{- with .Values.securityContext }}
@@ -66,3 +87,11 @@ spec:
           env:
             - name: REACT_APP_BACKEND_URL
               value: "http://{{ include "my-nginx-chart.fullname" . }}-backend:{{ .Values.backend.service.port }}"
+          {{- with .Values.frontend.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.frontend.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
