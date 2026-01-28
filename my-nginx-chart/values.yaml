@@ -5,8 +5,8 @@
 frontend:
   replicaCount: 2
   image:
-    repository: repository/name # Replace with your actual image
-    pullPolicy: IfNotPresent ## check other ones 
+    repository: k8s-frontend
+    pullPolicy: Never  # Use local image
     tag: "latest"
   service:
     type: LoadBalancer
@@ -29,12 +29,27 @@ frontend:
     requests:
       cpu: 250m
       memory: 64Mi
+  # Volumes for nginx (required for readOnlyRootFilesystem)
+  volumes:
+    - name: nginx-cache
+      emptyDir: {}
+    - name: nginx-run
+      emptyDir: {}
+    - name: nginx-tmp
+      emptyDir: {}
+  volumeMounts:
+    - name: nginx-cache
+      mountPath: /var/cache/nginx
+    - name: nginx-run
+      mountPath: /var/run
+    - name: nginx-tmp
+      mountPath: /tmp
 
 backend:
-  replicaCount: 5
+  replicaCount: 2
   image:
-    repository: repository/name # Replace with your actual image
-    pullPolicy: IfNotPresent ## check other ones 
+    repository: k8s-backend
+    pullPolicy: Never  # Use local image
     tag: "latest"
   service:
     type: ClusterIP  # Internal service, only accessible within cluster, Check in book if ithis is right
@@ -56,18 +71,7 @@ backend:
       memory: 128Mi
     requests:
       cpu: 250m
-      memory: 64Mire
-
-
-
-
-# # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
-# image:
-#   repository: nginxinc/nginx-unprivileged
-#   # This sets the pull policy for images.
-#   pullPolicy: IfNotPresent
-#   # Overrides the image tag whose default is the chart appVersion.
-#   tag: "1.27-alpine"
+      memory: 64Mi
 
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
@@ -128,24 +132,6 @@ deployment:
   progressDeadlineSeconds: 300
   minReadySeconds: 10
   revisionHistoryLimit: 5
-
-# Additional volumes on the output Deployment definition.
-volumes:
-  - name: nginx-cache
-    emptyDir: {}
-  - name: nginx-pid
-    emptyDir: {}
-  - name: nginx-tmp
-    emptyDir: {}
-
-# Additional volumeMounts on the output Deployment definition.
-volumeMounts: 
-  - name: nginx-cache
-    mountPath: /var/cache/nginx
-  - name: nginx-pid
-    mountPath: /var/run/nginx
-  - name: nginx-tmp
-    mountPath: /tmp
 
 nodeSelector: {}
 
