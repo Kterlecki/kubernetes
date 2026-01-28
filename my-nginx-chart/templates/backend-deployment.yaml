@@ -9,8 +9,17 @@ spec:
   {{- if not .Values.backend.autoscaling.enabled }}
   replicas: {{ .Values.backend.replicaCount }}
   {{- end }}
+  {{- if .Values.deployment.progressDeadlineSeconds }}
+  progressDeadlineSeconds: {{ .Values.deployment.progressDeadlineSeconds }}
+  {{- end }}
+  {{- if .Values.deployment.minReadySeconds }}
+  minReadySeconds: {{ .Values.deployment.minReadySeconds }}
+  {{- end }}
+  {{- if .Values.deployment.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.deployment.revisionHistoryLimit }}
+  {{- end }}
   {{- if .Values.backend.deploymentStrategy }}
-  stratagy:
+  strategy:
     type: {{ .Values.backend.deploymentStrategy.type | default "RollingUpdate" }}
     {{- if eq .Values.backend.deploymentStrategy.type "RollingUpdate" }}
     rollingUpdate:
@@ -46,6 +55,7 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      automountServiceAccountToken: {{ not .Values.serviceAccount.automount }}
       containers:
         - name: backend
           {{- with .Values.securityContext }}
